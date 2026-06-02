@@ -91,43 +91,43 @@ prediction = model.predict(input_df)[0]
 # -------------------------------------------------
 
 if prediction <= 60:
-    st.success("🟢 Delivery Status: On Time")
+    risk = "Low"
+    st.success(
+        "🟢 Delivery Status: On Time"
+    )
 
 elif prediction <= 120:
-    st.warning("🟡 Delivery Status: Moderate Risk")
+    risk = "Medium"
+    st.warning(
+        "🟡 Delivery Status: Moderate Risk"
+    )
 
 else:
-    st.error("🔴 Delivery Status: High Delay Risk")
-
+    risk = "High"
+    st.error(
+        "🔴 Delivery Status: High Delay Risk"
+    )
 # -------------------------------------------------
 # KPI Section
 # -------------------------------------------------
 
 st.subheader("📊 Key Metrics")
 
-hours = int(prediction // 60)
-minutes = int(prediction % 60)
-
 # KPI Calculations
-if prediction < 90:
-    risk = "Low"
-elif prediction < 150:
-    risk = "Medium"
-else:
-    risk = "High"
 
-customer_score = max(60, 100 - prediction/2)
+customer_score = max(50, min(100, int(100 - prediction/1.5)))
 fleet_utilization = max(70, int(100 - prediction/4))
 
 # KPI Cards
-col1, col2, col3, col4, col5, col6 = st.columns(6)
+col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
 
+
+delivery_time = int(prediction)
 
 col1.metric(
     "🚚 Estimated Delivery Time",
-    f"{hours}h {minutes}m"
+    f"{delivery_time} mins"
 )
-
 col2.metric(
     "⭐ Agent Rating",
     f"{agent_rating:.1f}"
@@ -151,6 +151,11 @@ col6.metric(
     f"{fleet_utilization}%"
 )
 
+col7.metric(
+    "🎯 Model Accuracy",
+    "87%"
+)
+
 st.divider()
 
 st.subheader("🤖 Model Information")
@@ -160,6 +165,7 @@ with st.expander("View Model Details"):
     st.write("**R² Score:** 0.87")
     st.write("**RMSE:** 23.26 Minutes")
     st.write("**Features Used:** 8")
+    st.write("**Prediction Unit:** Minutes")
     st.write("**Target Variable:** Delivery Time")
 
 st.markdown("### Operational Decision Support")
@@ -228,14 +234,14 @@ st.caption(
     "Business-level interpretation of feature influence based on model analysis."
 )
 
-st.subheader("🤖 AI Recommendations")
+st.subheader("📋 Operational Recommendations")
 
-if prediction < 90:
+if prediction <= 60:
     st.success(
         "Delivery is expected to arrive on time. Current route and resources are optimal."
     )
 
-elif prediction < 150:
+elif prediction <= 120:
     st.warning(
         "Moderate delay risk detected. Consider alternative routing if available."
     )
@@ -274,7 +280,10 @@ sns.lineplot(
 ax1.set_title("🚚 Impact of Distance on Delivery Time")
 ax1.set_xlabel("Distance (km)")
 ax1.set_ylabel("Predicted Time (minutes)")
-st.pyplot(fig1)
+colA, colB = st.columns(2)
+
+with colA:
+    st.pyplot(fig1)
 
 # -------------------------------------
 # 2️⃣ Traffic Impact (Gradient Bar Chart)
@@ -298,7 +307,8 @@ sns.barplot(
 ax2.set_title("🚦 Impact of Traffic on Delivery Time")
 ax2.set_xlabel("Traffic Condition")
 ax2.set_ylabel("Predicted Time (minutes)")
-st.pyplot(fig2)
+with colB:
+    st.pyplot(fig2)
 
 # -------------------------------------
 # 3️⃣ Weather Impact (Soft Color Bar Chart)
